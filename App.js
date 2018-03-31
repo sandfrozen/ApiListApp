@@ -1,12 +1,14 @@
 import React from 'react';
-import { View, Text, Button, Image, TouchableOpacity, TouchableHighlight, ListView, Alert, } from 'react-native';
-import { List, ListItem } from 'react-native-elements'
+import { View, Text, Button, Image, TouchableOpacity, TouchableHighlight, ListView, Alert, Linking } from 'react-native';
+import { List, ListItem, Tile } from 'react-native-elements'
 import { StackNavigator } from 'react-navigation';
 import Icon from 'react-native-vector-icons/Ionicons';
 import { ScrollView } from 'react-native';
 import TimeAgo from 'react-native-timeago';
 
-const mainColor = "#444444"
+const mainColor = "#c7c1c9"
+const secdColor = "#000"
+const linkColor = "#4F8EF7"
 
 class HomeScreen extends React.Component {
 
@@ -69,11 +71,6 @@ class HomeScreen extends React.Component {
 
     return {
       title: params && params.title ? params.title : 'Articles',
-
-      headerStyle: {
-        backgroundColor: navigationOptions.headerTintColor,
-      },
-      headerTintColor: navigationOptions.headerStyle.backgroundColor,
       headerLeft: (
         <LogoTitle onPress={() => navigation.navigate('MyModal')} />
       ),
@@ -108,10 +105,10 @@ class HomeScreen extends React.Component {
     return (
       <ListItem
         roundAvatar
-        avatarStyle={{borderColor: mainColor, borderWidth: 2, width: 40, height: 40, borderRadius: 20}}
+        avatarStyle={{ borderColor: mainColor, borderWidth: 1, width: 40, height: 40, borderRadius: 20 }}
         title={rowData.title}
         titleNumberOfLines={4}
-        rightIcon={{name: 'chevron-right'}}
+        rightIcon={{ name: 'chevron-right' }}
         subtitle={
           <View style={styles.subtitleView}>
             <Text style={styles.ratingText}><TimeAgo time={rowData.publishedAt} /></Text>
@@ -203,17 +200,34 @@ class DetailsScreen extends React.Component {
     }
   };
 
+  componentDidMount() {
+    console.log()
+  }
+
 
   render() {
     /* 2. Read the params from the navigation state */
     const { params } = this.props.navigation.state;
     const article = params && params.article ? params.article : null
-
     return (
       <View style={{ flex: 1, alignItems: 'center', justifyContent: 'center' }}>
-        <Text>{article.title}</Text>
         <ScrollView>
-          <Text>Desc: {article.description}</Text>
+          <Tile
+            imageSrc={{ uri: article.urlToImage ? article.urlToImage : './NoImage.png' }}
+            activeOpacity={0}
+            title={article.title}
+            contentContainerStyle={{ height: 70 }}
+          >
+            <View style={{ flex: 1, flexDirection: 'column', justifyContent: 'space-between', alignItems: 'flex-start' }}>
+              <Text>{article.description}</Text>
+
+              <TouchableOpacity style={{ flex: 1 }} onPress={() => Linking.openURL(article.url)}>
+
+                <Text style={{ color: linkColor, fontSize: 18, paddingVertical: 8 }}>Link</Text>
+              </TouchableOpacity>
+            </View>
+          </Tile>
+
         </ScrollView>
       </View>
     );
@@ -237,7 +251,7 @@ class RefreshIcon extends React.Component {
   render() {
     return (
       <TouchableOpacity onPress={this.props.onPress}>
-        <Icon name="ios-refresh" size={40} color="#4F8EF7" style={{ marginRight: 8, marginTop: 11 }} />
+        <Icon name="ios-refresh" size={36} color={linkColor} style={{ marginRight: 8, marginTop: 8 }} />
       </TouchableOpacity>
     );
   }
@@ -257,6 +271,17 @@ class ModalScreen extends React.Component {
   }
 }
 
+class WebSiteScreen extends React.Component {
+  render() {
+    return (
+      <WebView
+        source={{ uri: 'https://github.com/facebook/react-native' }}
+        style={{ marginTop: 20 }}
+      />
+    );
+  }
+}
+
 const MainStack = StackNavigator(
   {
     Home: {
@@ -265,6 +290,9 @@ const MainStack = StackNavigator(
     Details: {
       screen: DetailsScreen,
     },
+    WebSite: {
+      screen: WebSiteScreen,
+    },
   },
   {
     initialRouteName: 'Home',
@@ -272,7 +300,7 @@ const MainStack = StackNavigator(
       headerStyle: {
         backgroundColor: mainColor,
       },
-      headerTintColor: '#fff',
+      headerTintColor: secdColor,
       headerTitleStyle: {
         fontWeight: 'bold',
       },
