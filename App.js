@@ -15,14 +15,35 @@ class HomeScreen extends React.Component {
       dataSource: new ListView.DataSource({ rowHasChanged: (r1, r2) => r1 !== r2 }),
       link: 'https://newsapi.org/v2/top-headlines?country=pl&apiKey=bedefbb1d71346c2a2795c2113f469fd',
     }
+
+    this.renderRow = this.renderRow.bind(this);
   }
 
   componentDidMount() {
-    // this.loadDataFromNewsAPI()
+    this.loadDataFromNewsAPI()
+    const list = [
+      {
+        title: 'Amy Farha',
+        subtitle: 'Vice President'
+      },
+      {
+        title: 'Chris Jackson',
+        urlToImage: 'https://s3.amazonaws.com/uifaces/faces/twitter/adhamdannaway/128.jpg',
+      },
+    ]
+
+    this.setState({
+      //dataSource: this.state.dataSource.cloneWithRows(list),
+    })
   }
 
   componentWillMount() {
     this.props.navigation.setParams({ loadData: this.loadDataFromNewsAPI })
+    this.props.navigation.setParams({ updateHeader: this.updateHeader })
+  }
+
+  updateHeader() {
+    this.props.navigation.setParams({ title: 'Updated!' })
   }
 
   loadDataFromNewsAPI = () => {
@@ -53,14 +74,14 @@ class HomeScreen extends React.Component {
   }
 
   static navigationOptions = ({ navigation, navigationOptions }) => {
-    const params = navigation.state.params || {};
-    const { params2 } = navigation.state || {};
+    const { params } = navigation.state || {};
+    const param = navigation.state.params || {};
     const NewsAPI = require('newsapi');
     const newsapi = new NewsAPI('bedefbb1d71346c2a2795c2113f469fd');
 
     return {
-      title: "Home",
-      headerTitle: params2 ? params2.title : 'Articles',
+      title: params && params.title ? params.title : 'Articles',
+
       headerStyle: {
         backgroundColor: navigationOptions.headerTintColor,
       },
@@ -69,7 +90,7 @@ class HomeScreen extends React.Component {
         <LogoTitle onPress={() => navigation.navigate('MyModal')} />
       ),
       headerRight: (
-        <RefreshIcon onPress={params.loadData} />
+        <RefreshIcon onPress={param.loadData} />
       ),
     }
   };
@@ -98,6 +119,7 @@ class HomeScreen extends React.Component {
   renderRow(rowData, sectionID) {
     return (
       <ListItem
+        style={{ height: 150 }}
         roundAvatar
         title={rowData.title}
         subtitle={
@@ -106,138 +128,25 @@ class HomeScreen extends React.Component {
           </View>
         }
         avatar={rowData.urlToImage ? rowData.urlToImage : require('./fsv.jpg')}
+        onPress={() => {
+          /* 1. Navigate to the Details route with params */
+          this.props.navigation.navigate('Details', {
+            article: rowData
+          });
+        }}
       />
     )
   }
 
   render() {
-    const list = [
-      {
-        name: 'Amy Farha',
-        avatar_url: 'https://s3.amazonaws.com/uifaces/faces/twitter/ladylexy/128.jpg',
-        subtitle: 'Vice President'
-      },
-      {
-        name: 'Chris Jackson',
-        avatar_url: 'https://s3.amazonaws.com/uifaces/faces/twitter/adhamdannaway/128.jpg',
-        subtitle: 'Vice Chairman'
-      },
-    ]
-    const list2 = [
-      {
-        name: 'Amy Farha',
-        avatar_url: 'https://s3.amazonaws.com/uifaces/faces/twitter/ladylexy/128.jpg',
-        subtitle: 'Vice President'
-      },
-      {
-        name: 'Chris Jackson',
-        avatar_url: 'https://s3.amazonaws.com/uifaces/faces/twitter/adhamdannaway/128.jpg',
-        subtitle: 'Vice Chairman'
-      },
-    ]
-    const list3 = [
-      {
-        title: 'Appointments',
-        icon: 'av-timer'
-      },
-      {
-        title: 'Trips',
-        icon: 'flight-takeoff'
-      },
-      {
-        title: 'Reservations',
-        icon: 'hotel'
-      },
-      {
-        title: 'Cars',
-        icon: 'directions-car'
-      },
-      {
-        title: 'Ships',
-        icon: 'directions-boat'
-      },
-      {
-        title: 'Best offers',
-        icon: 'local-offer'
-      },
-    ]
-    dataSource = new ListView.DataSource({ rowHasChanged: (r1, r2) => r1 !== r2 })
-    listka = this.state.dataSource.cloneWithRows(list)
     return (
       <View style={{ flex: 1, alignItems: 'center', justifyContent: 'center' }}>
-        <Text>Home Screen</Text>
-        <Button
-          title="Go to Details"
-          onPress={() => {
-            /* 1. Navigate to the Details route with params */
-            this.props.navigation.navigate('Details', {
-              itemId: 86,
-              otherParam: 'anything you want here',
-            });
-          }}
-        />
-        <Button
-          title="Update the title"
-          onPress={() => this.props.navigation.setParams({ title: 'Updated!' })}
-        />
-        <Button
-          title="Load data"
-          onPress={() => this.loadDataFromNewsAPI()}
-        />
         <ScrollView style={{ width: "100%" }}>
           <List>
             <ListView
               dataSource={this.state.dataSource}
               renderRow={this.renderRow}
             />
-          </List>
-
-          <List>
-            <ListItem
-              roundAvatar
-              title='Limited supply! Its like digital gold!'
-              subtitle={
-                <View style={styles.subtitleView}>
-                  <Image source={require('./fsv.jpg')} style={styles.ratingImage} />
-                  <Text style={styles.ratingText}>5 months ago</Text>
-                </View>
-              }
-              avatar={require('./fsv.jpg')}
-            />
-          </List>
-
-          <List containerSstyle={{ marginBottom: 20 }}>
-            {
-              list2.map((l, i) => (
-                <ListItem
-                  style={{ height: 100 }}
-                  avatar={{ uri: l.avatar_url }}
-                  key={i}
-                  title={l.name}
-
-                />
-              ))
-            }
-          </List>
-
-          <List>
-            {
-              list3.map((item, i) => (
-                <ListItem
-                  key={i}
-                  title={item.title}
-                  leftIcon={{ name: item.icon }}
-                  onPress={() => {
-                    /* 1. Navigate to the Details route with params */
-                    var t = item.title
-                    this.props.navigation.navigate('Details', {
-                      itemId: { i },
-                      otherParam: t,
-                    });
-                  }}
-                />
-              ))
-            }
           </List>
         </ScrollView>
       </View>
@@ -256,7 +165,7 @@ const styles = {
     width: 100
   },
   ratingText: {
-    paddingLeft: 10,
+    paddingLeft: 0,
     color: 'grey'
   }
 }
@@ -266,7 +175,7 @@ class DetailsScreen extends React.Component {
     const { params } = navigation.state;
 
     return {
-      title: params ? params.otherParam : 'A Nested Details Screen',
+      title: params && params.article ? params.article.title : 'A Nested Details Screen',
     }
   };
 
@@ -274,26 +183,14 @@ class DetailsScreen extends React.Component {
   render() {
     /* 2. Read the params from the navigation state */
     const { params } = this.props.navigation.state;
-    const itemId = params ? params.itemId : null;
-    const otherParam = params ? params.otherParam : null;
+    const article = params && params.article ? params.article : null
 
     return (
       <View style={{ flex: 1, alignItems: 'center', justifyContent: 'center' }}>
-        <Text>Details Screen</Text>
-        <Text>itemId: {JSON.stringify(itemId)}</Text>
-        <Text>otherParam: {JSON.stringify(otherParam)}</Text>
-        <Button
-          title="Go to Details... again"
-          onPress={() => this.props.navigation.navigate('Details')}
-        />
-        <Button
-          title="Go back"
-          onPress={() => this.props.navigation.goBack()}
-        />
-        <Button
-          title="Update the title"
-          onPress={() => this.props.navigation.setParams({ otherParam: 'Updated!' })}
-        />
+        <Text>{article.title}</Text>
+        <ScrollView>
+          <Text>Desc: {article.description}{article.description}{article.description}{article.description}{article.description}{article.description}</Text>
+        </ScrollView>
       </View>
     );
   }
