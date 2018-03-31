@@ -4,6 +4,7 @@ import { List, ListItem } from 'react-native-elements'
 import { StackNavigator } from 'react-navigation';
 import Icon from 'react-native-vector-icons/Ionicons';
 import { ScrollView } from 'react-native';
+import TimeAgo from 'react-native-timeago';
 
 class HomeScreen extends React.Component {
 
@@ -37,13 +38,13 @@ class HomeScreen extends React.Component {
         this.setState({
           dataSource: this.state.dataSource.cloneWithRows(response.articles),
         })
-      } else if(response["totalResults"] == "0") {
+      } else if (response["totalResults"] == "0") {
         console.log("nie znaleziono")
         Alert.alert(
           'Articles not found',
           'Recieved 0 items.',
           [
-            {text: 'OK'},
+            { text: 'OK' },
           ],
           { cancelable: false }
         )
@@ -52,14 +53,14 @@ class HomeScreen extends React.Component {
   }
 
   static navigationOptions = ({ navigation, navigationOptions }) => {
-    // const { params } = navigation.state || {};
     const params = navigation.state.params || {};
+    const { params2 } = navigation.state || {};
     const NewsAPI = require('newsapi');
     const newsapi = new NewsAPI('bedefbb1d71346c2a2795c2113f469fd');
 
     return {
       title: "Home",
-      headerTitle: params ? params.title : 'Articles',
+      headerTitle: params2 ? params2.title : 'Articles',
       headerStyle: {
         backgroundColor: navigationOptions.headerTintColor,
       },
@@ -98,15 +99,30 @@ class HomeScreen extends React.Component {
     return (
       <ListItem
         roundAvatar
-        key={sectionID}
-        title={rowData.name}
-        subtitle={rowData.subtitle}
-        avatar={{ uri: rowData.avatar_url }}
+        title={rowData.title}
+        subtitle={
+          <View style={styles.subtitleView}>
+            <Text style={styles.ratingText}><TimeAgo time={rowData.publishedAt} /></Text>
+          </View>
+        }
+        avatar={rowData.urlToImage ? rowData.urlToImage : require('./fsv.jpg')}
       />
     )
   }
 
   render() {
+    const list = [
+      {
+        name: 'Amy Farha',
+        avatar_url: 'https://s3.amazonaws.com/uifaces/faces/twitter/ladylexy/128.jpg',
+        subtitle: 'Vice President'
+      },
+      {
+        name: 'Chris Jackson',
+        avatar_url: 'https://s3.amazonaws.com/uifaces/faces/twitter/adhamdannaway/128.jpg',
+        subtitle: 'Vice Chairman'
+      },
+    ]
     const list2 = [
       {
         name: 'Amy Farha',
@@ -145,6 +161,8 @@ class HomeScreen extends React.Component {
         icon: 'local-offer'
       },
     ]
+    dataSource = new ListView.DataSource({ rowHasChanged: (r1, r2) => r1 !== r2 })
+    listka = this.state.dataSource.cloneWithRows(list)
     return (
       <View style={{ flex: 1, alignItems: 'center', justifyContent: 'center' }}>
         <Text>Home Screen</Text>
@@ -167,13 +185,12 @@ class HomeScreen extends React.Component {
           onPress={() => this.loadDataFromNewsAPI()}
         />
         <ScrollView style={{ width: "100%" }}>
-
-          <ListView
-            dataSource={this.state.dataSource}
-            renderRow={(rowData) =>
-              <View><Text>{rowData.title}</Text></View>
-            }
-          />
+          <List>
+            <ListView
+              dataSource={this.state.dataSource}
+              renderRow={this.renderRow}
+            />
+          </List>
 
           <List>
             <ListItem
@@ -246,7 +263,7 @@ const styles = {
 
 class DetailsScreen extends React.Component {
   static navigationOptions = ({ navigation }) => {
-    const params = navigation.state.params;
+    const { params } = navigation.state;
 
     return {
       title: params ? params.otherParam : 'A Nested Details Screen',
