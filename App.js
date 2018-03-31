@@ -1,12 +1,12 @@
 import React from 'react';
-import { View, Text, Button, Image, TouchableOpacity, TouchableHighlight, ListView, Alert, Linking } from 'react-native';
+import { View, Text, Button, Image, TouchableOpacity, TouchableHighlight, ListView, Alert, Linking, TextInput } from 'react-native';
 import { List, ListItem, Tile } from 'react-native-elements'
 import { StackNavigator } from 'react-navigation';
 import Icon from 'react-native-vector-icons/Ionicons';
 import { ScrollView } from 'react-native';
 import TimeAgo from 'react-native-timeago';
 
-const mainColor = "#c7c1c9"
+const mainColor = "#bababa"
 const secdColor = "#000"
 const linkColor = "#4F8EF7"
 
@@ -18,6 +18,7 @@ class HomeScreen extends React.Component {
     this.state = {
       dataSource: new ListView.DataSource({ rowHasChanged: (r1, r2) => r1 !== r2 }),
       link: 'https://newsapi.org/v2/top-headlines?country=pl&apiKey=bedefbb1d71346c2a2795c2113f469fd',
+      country: "pl"
     }
 
     this.renderRow = this.renderRow.bind(this);
@@ -40,7 +41,7 @@ class HomeScreen extends React.Component {
     const NewsAPI = require('newsapi');
     const newsapi = new NewsAPI('bedefbb1d71346c2a2795c2113f469fd');
     newsapi.v2.topHeadlines({
-      country: 'pl'
+      country: this.state.country ? this.state.country : "pl"
     }).then(response => {
       //console.log(response);
 
@@ -152,6 +153,12 @@ class HomeScreen extends React.Component {
   render() {
     return (
       <View style={{ flex: 1, alignItems: 'center', justifyContent: 'center' }}>
+        <TextInput
+          placeholder="country code ex: us, gb, pl.."
+          style={{ width: 357, height: 40, borderColor: '#bababa', borderRadius: 8, borderWidth: 1, padding: 8, margin: 8, backgroundColor: '#fff' }}
+          onChangeText={(country) => this.setState({ country })}
+          value={this.state.country}
+        />
         <ScrollView style={{ width: "100%" }}>
           <List>
             <ListView
