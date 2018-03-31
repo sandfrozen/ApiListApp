@@ -1,10 +1,12 @@
 import React from 'react';
-import { View, Text, Button, Image, TouchableOpacity, ListView, FlatList, Alert } from 'react-native';
+import { View, Text, Button, Image, TouchableOpacity, TouchableHighlight, ListView, Alert, } from 'react-native';
 import { List, ListItem } from 'react-native-elements'
 import { StackNavigator } from 'react-navigation';
 import Icon from 'react-native-vector-icons/Ionicons';
 import { ScrollView } from 'react-native';
 import TimeAgo from 'react-native-timeago';
+
+const mainColor = "#444444"
 
 class HomeScreen extends React.Component {
 
@@ -21,20 +23,6 @@ class HomeScreen extends React.Component {
 
   componentDidMount() {
     this.loadDataFromNewsAPI()
-    const list = [
-      {
-        title: 'Amy Farha',
-        subtitle: 'Vice President'
-      },
-      {
-        title: 'Chris Jackson',
-        urlToImage: 'https://s3.amazonaws.com/uifaces/faces/twitter/adhamdannaway/128.jpg',
-      },
-    ]
-
-    this.setState({
-      //dataSource: this.state.dataSource.cloneWithRows(list),
-    })
   }
 
   componentWillMount() {
@@ -52,7 +40,7 @@ class HomeScreen extends React.Component {
     newsapi.v2.topHeadlines({
       country: 'pl'
     }).then(response => {
-      console.log(response);
+      //console.log(response);
 
       if (response["status"] == "ok" && response["totalResults"] != "0") {
         console.log("znaleziono")
@@ -119,15 +107,17 @@ class HomeScreen extends React.Component {
   renderRow(rowData, sectionID) {
     return (
       <ListItem
-        style={{ height: 150 }}
         roundAvatar
+        avatarStyle={{borderColor: mainColor, borderWidth: 2, width: 40, height: 40, borderRadius: 20}}
         title={rowData.title}
+        titleNumberOfLines={4}
+        rightIcon={{name: 'chevron-right'}}
         subtitle={
           <View style={styles.subtitleView}>
             <Text style={styles.ratingText}><TimeAgo time={rowData.publishedAt} /></Text>
           </View>
         }
-        avatar={rowData.urlToImage ? rowData.urlToImage : require('./fsv.jpg')}
+        avatar={rowData.urlToImage ? rowData.urlToImage : require('./NoImage.png')}
         onPress={() => {
           /* 1. Navigate to the Details route with params */
           this.props.navigation.navigate('Details', {
@@ -135,6 +125,30 @@ class HomeScreen extends React.Component {
           });
         }}
       />
+    )
+  }
+
+  // tryin to do own row, but decided to use ListItem by react-native-elements ^
+  renderRow2(rowData, sectionID) {
+    const image = rowData && rowData.urlToImage ? rowData.urlToImage : './NoImage.png'
+    return (
+
+      <TouchableOpacity style={{ flex: 1 }}
+        onPress={() => {
+          /* 1. Navigate to the Details route with params */
+          this.props.navigation.navigate('Details', {
+            article: rowData
+          });
+        }}>
+
+        <View style={styles.row}>
+          <Image
+            source={require('./NoImage.png')}
+            style={{ height: 80, width: 80 }}
+          />
+          <Text style={{ flex: 1, paddingLeft: 8 }}>{rowData.title}</Text>
+        </View >
+      </TouchableOpacity>
     )
   }
 
@@ -155,10 +169,19 @@ class HomeScreen extends React.Component {
 }
 
 const styles = {
+  row: {
+    height: 100,
+    width: '100%',
+    borderBottomWidth: 1,
+    flexDirection: 'row',
+    borderBottomColor: '#BBBBBB',
+    paddingLeft: 0,
+    padding: 8,
+  },
   subtitleView: {
     flexDirection: 'row',
     paddingLeft: 10,
-    paddingTop: 5
+    paddingTop: 5,
   },
   ratingImage: {
     height: 19.21,
@@ -166,7 +189,8 @@ const styles = {
   },
   ratingText: {
     paddingLeft: 0,
-    color: 'grey'
+    color: 'grey',
+    fontSize: 10,
   }
 }
 
@@ -189,7 +213,7 @@ class DetailsScreen extends React.Component {
       <View style={{ flex: 1, alignItems: 'center', justifyContent: 'center' }}>
         <Text>{article.title}</Text>
         <ScrollView>
-          <Text>Desc: {article.description}{article.description}{article.description}{article.description}{article.description}{article.description}</Text>
+          <Text>Desc: {article.description}</Text>
         </ScrollView>
       </View>
     );
@@ -213,7 +237,7 @@ class RefreshIcon extends React.Component {
   render() {
     return (
       <TouchableOpacity onPress={this.props.onPress}>
-        <Icon name="ios-refresh" size={40} color="#4F8EF7" style={{ marginRight: 8, marginTop: 12 }} />
+        <Icon name="ios-refresh" size={40} color="#4F8EF7" style={{ marginRight: 8, marginTop: 11 }} />
       </TouchableOpacity>
     );
   }
@@ -246,7 +270,7 @@ const MainStack = StackNavigator(
     initialRouteName: 'Home',
     navigationOptions: {
       headerStyle: {
-        backgroundColor: '#8c0076',
+        backgroundColor: mainColor,
       },
       headerTintColor: '#fff',
       headerTitleStyle: {
