@@ -23,6 +23,8 @@
     "newsapi": "^2.2.2",
     "react": "16.2.0",
     "react-native": "0.52.0",
+    "react-native-display": "^1.0.8",
+    "react-native-dropdownalert": "^3.4.0",
     "react-native-elements": "^0.19.0",
     "react-native-timeago": "^0.4.0",
     "react-native-vector-icons": "^4.5.0",

@@ -1,10 +1,11 @@
 import React from 'react';
-import { View, Text, Button, Image, TouchableOpacity, TouchableHighlight, ListView, Alert, Linking, TextInput } from 'react-native';
+import { View, Text, Button, Image, TouchableOpacity, TouchableHighlight, ListView, Alert, Linking, TextInput, ActivityIndicator } from 'react-native';
 import { List, ListItem, Tile } from 'react-native-elements'
 import { StackNavigator } from 'react-navigation';
 import Icon from 'react-native-vector-icons/Ionicons';
 import { ScrollView } from 'react-native';
 import TimeAgo from 'react-native-timeago';
+import Display from 'react-native-display';
 
 const mainColor = "#bababa"
 const secdColor = "#000"
@@ -18,7 +19,10 @@ class HomeScreen extends React.Component {
     this.state = {
       dataSource: new ListView.DataSource({ rowHasChanged: (r1, r2) => r1 !== r2 }),
       link: 'https://newsapi.org/v2/top-headlines?country=pl&apiKey=bedefbb1d71346c2a2795c2113f469fd',
-      country: "pl"
+      country: "pl",
+      count: 0,
+      infoHeight: 20,
+      animate: false
     }
 
     this.renderRow = this.renderRow.bind(this);
@@ -33,25 +37,41 @@ class HomeScreen extends React.Component {
     this.props.navigation.setParams({ updateHeader: this.updateHeader })
   }
 
-  updateHeader() {
-    this.props.navigation.setParams({ title: 'Updated!' })
+  showAndHideInfo() {
+    Animated.sequence([
+      Animated.timing(this.state.infoHeight, {
+        toValue: 20,
+        useNativeDriver: true,
+      }),
+      Animated.timing(this.state.infoHeight, {
+        toValue: 0,
+        useNativeDriver: true,
+      })
+    ]).start();
   }
 
   loadDataFromNewsAPI = () => {
+    this.setState({
+      animate: true
+    })
     const NewsAPI = require('newsapi');
     const newsapi = new NewsAPI('bedefbb1d71346c2a2795c2113f469fd');
     newsapi.v2.topHeadlines({
-      country: this.state.country ? this.state.country : "pl"
+      country: this.state.country ? this.state.country : "abc" // hehe taki trik jesli nikt nic nie wpisze xdd
     }).then(response => {
       //console.log(response);
-
+      //this.showAndHideInfo()
       if (response["status"] == "ok" && response["totalResults"] != "0") {
         console.log("znaleziono")
         this.setState({
           dataSource: this.state.dataSource.cloneWithRows(response.articles),
+          count: response.articles.length
         })
       } else if (response["totalResults"] == "0") {
         console.log("nie znaleziono")
+        this.setState({
+          count: response.articles.length
+        })
         Alert.alert(
           'Articles not found',
           'Recieved 0 items.',
@@ -61,6 +81,9 @@ class HomeScreen extends React.Component {
           { cancelable: false }
         )
       }
+      this.setState({
+        animate: false
+      })
     });
   }
 
@@ -75,32 +98,8 @@ class HomeScreen extends React.Component {
       headerLeft: (
         <LogoTitle onPress={() => navigation.navigate('MyModal')} />
       ),
-      headerRight: (
-        <RefreshIcon onPress={param.loadData} />
-      ),
     }
   };
-
-  loadDataFromNewsAPI2() {
-    // fetch('https://newsapi.org/v2/top-headlines?country=us&apiKey=bedefbb1d71346c2a2795c2113f469fd')
-    // .then( (response) => response.json())
-    // .then( (responseJson) => {
-    //   console.log(responseJson)
-    //   data = responseJson["articles"]
-    //   if( responseJson["status"] == "ok" && responseJson["totalResults"] != "0") {
-    //     console.log("znaleziono")
-    //     this.setState({
-    //       dataSource: this.state.dataSource.cloneWithRows(data),
-    //     })
-    //   } else {
-    //     console.log("nie znaleziono")
-    //   }
-
-    // })
-    // .catch( (error) => {
-    //   console.error(error)
-    // })
-  }
 
   renderRow(rowData, sectionID) {
     return (
@@ -114,6 +113,7 @@ class HomeScreen extends React.Component {
           <View style={styles.subtitleView}>
             <Text style={styles.ratingText}><TimeAgo time={rowData.publishedAt} /></Text>
           </View>
+
         }
         avatar={rowData.urlToImage ? rowData.urlToImage : require('./NoImage.png')}
         onPress={() => {
@@ -126,39 +126,46 @@ class HomeScreen extends React.Component {
     )
   }
 
-  // tryin to do own row, but decided to use ListItem by react-native-elements ^
-  renderRow2(rowData, sectionID) {
-    const image = rowData && rowData.urlToImage ? rowData.urlToImage : './NoImage.png'
-    return (
-
-      <TouchableOpacity style={{ flex: 1 }}
-        onPress={() => {
-          /* 1. Navigate to the Details route with params */
-          this.props.navigation.navigate('Details', {
-            article: rowData
-          });
-        }}>
-
-        <View style={styles.row}>
-          <Image
-            source={require('./NoImage.png')}
-            style={{ height: 80, width: 80 }}
-          />
-          <Text style={{ flex: 1, paddingLeft: 8 }}>{rowData.title}</Text>
-        </View >
-      </TouchableOpacity>
-    )
-  }
-
   render() {
     return (
       <View style={{ flex: 1, alignItems: 'center', justifyContent: 'center' }}>
-        <TextInput
-          placeholder="country code ex: us, gb, pl.."
-          style={{ width: 357, height: 40, borderColor: '#bababa', borderRadius: 8, borderWidth: 1, padding: 8, margin: 8, backgroundColor: '#fff' }}
-          onChangeText={(country) => this.setState({ country })}
-          value={this.state.country}
-        />
+        <View style={{ flexDirection: "row", justifyContent: 'center', alignItems: 'center', paddingHorizontal: 8, borderBottomColor: mainColor, borderBottomWidth: 1, backgroundColor: 'white' }} >
+          <Text style={{ flexBasis: "auto", paddingRight: 14 }}>Country:</Text>
+          <TextInput
+            spellCheck={false}
+            returnKeyType="search"
+            autoCapitalize="none"
+            clearButtonMode="always"
+            blurOnSubmit={true}
+            onSubmitEditing={() => this.loadDataFromNewsAPI()}
+            placeholder="us, gb, pl.."
+            style={{ flex: 1, padding: 8, margin: 8, backgroundColor: 'rgb(239,239,244)', borderRadius: 4 }}
+            onChangeText={(country) => this.setState({ country })}
+            value={this.state.country}
+          />
+          <ActivityIndicator
+            hidesWhenStopped={true}
+            animating={this.state.animate}
+            style={{ flexBasis: "auto" }}
+          />
+          {/* <Display
+            enable={this.state.animate}
+            enterDuration={500}
+            exitDuration={250}
+            enter='fadeIn'
+            exit='fadeOut'
+            style={{ flexBasis: "auto" }}
+          >
+            <ActivityIndicator
+              hidesWhenStopped={true}
+              animating={this.state.animate}
+              style={{ flexBasis: "auto" }}
+            />
+          </Display> */}
+          <TouchableOpacity onPress={this.loadDataFromNewsAPI}>
+            <Icon name="ios-search" size={24} style={{ flexBasis: "auto", paddingLeft: 20, paddingRight: 12, paddingTop: 2 }} />
+          </TouchableOpacity>
+        </View>
         <ScrollView style={{ width: "100%" }}>
           <List>
             <ListView
@@ -167,6 +174,9 @@ class HomeScreen extends React.Component {
             />
           </List>
         </ScrollView>
+        {/* <View style={{ backgroundColor: "green", width: "100%", height: this.state.infoHeight, alignItems: 'center', justifyContent: 'center' }}>
+          <Text>{this.state.count} news founded</Text>
+        </View> */}
       </View>
     );
   }
@@ -207,37 +217,53 @@ class DetailsScreen extends React.Component {
     }
   };
 
-  componentDidMount() {
-    console.log()
-  }
+  ArticleView(props) {
+    article = props.article
+    urlToImage = article.urlToImage
+    return (
+      <ScrollView style={{ flex: 1 }}>
+        <ArticleImageView article={article} />
 
+        <View style={{ flex: 1, flexDirection: 'row', justifyContent: 'space-between', paddingVertical: 4 }}>
+          <Text style={{ color: '#bbbbbb', backgroundColor: 'black', paddingLeft: 13, paddingRight: 4, paddingVertical: 2 }}>{article.source.name}</Text>
+          <TimeAgo style={{ borderColor: 'black', marginRight: 4, borderRadius: 5, borderWidth: 1, paddingVertical: 2, paddingHorizontal: 5 }} time={article.publishedAt} />
+        </View>
+
+        <Text style={{ paddingHorizontal: 12, paddingBottom: 12, fontSize: 30, justifyContent: 'center' }}>{article.title}</Text>
+        <Text style={{ paddingHorizontal: 12, paddingBottom: 12, }}>{article.description}</Text>
+        <TouchableOpacity onPress={() => Linking.openURL(article.url)}>
+          <Text style={{ paddingHorizontal: 12, paddingBottom: 12, color: linkColor, fontSize: 20 }}>Link</Text>
+        </TouchableOpacity>
+      </ScrollView>
+    )
+  }
 
   render() {
     /* 2. Read the params from the navigation state */
     const { params } = this.props.navigation.state;
     const article = params && params.article ? params.article : null
+
     return (
       <View style={{ flex: 1, alignItems: 'center', justifyContent: 'center' }}>
-        <ScrollView>
-          <Tile
-            imageSrc={{ uri: article.urlToImage ? article.urlToImage : './NoImage.png' }}
-            activeOpacity={0}
-            title={article.title}
-            contentContainerStyle={{ height: 70 }}
-          >
-            <View style={{ flex: 1, flexDirection: 'column', justifyContent: 'space-between', alignItems: 'flex-start' }}>
-              <Text>{article.description}</Text>
-
-              <TouchableOpacity style={{ flex: 1 }} onPress={() => Linking.openURL(article.url)}>
-
-                <Text style={{ color: linkColor, fontSize: 18, paddingVertical: 8 }}>Link</Text>
-              </TouchableOpacity>
-            </View>
-          </Tile>
-
-        </ScrollView>
+        <this.ArticleView article={article} />
       </View>
     );
+  }
+}
+
+class ArticleImageView extends React.Component {
+  render() {
+    const article = this.props.article
+    const urlToImage = article.urlToImage
+    if (urlToImage) {
+      return (
+        <Image source={{ uri: urlToImage }} style={{ minWidth: '100%', height: 250 }} />
+      )
+    } else {
+      return (
+        <Image source={require('./NoImage.png')} style={{ minWidth: '100%', height: 250 }} />
+      )
+    }
   }
 }
 
