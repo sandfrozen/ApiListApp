@@ -65,24 +65,32 @@ export default class HomeScreen extends React.Component {
         }).then(response => {
             //console.log(response);
             //this.showAndHideInfo()
-            
+            this.setState({
+                dataSource: this.state.dataSource.cloneWithRows(response.articles),
+                count: response.articles.length
+            })
             if (response["status"] == "ok" && response["totalResults"] != "0") {
                 console.log("znaleziono")
-                this.setState({
-                    dataSource: this.state.dataSource.cloneWithRows(response.articles),
-                    count: response.articles.length
-                })
 
             } else if (response["status"] == "ok" && response["totalResults"] == "0") {
                 console.log("nie znaleziono")
-                this.setState({
-                    dataSource: this.state.dataSource.cloneWithRows(response.articles),
-                    count: response.articles.length
-                })
+                Alert.alert(
+                    'Articles not found',
+                    'Recieved 0 for: ' + this.state.country,
+                    { cancelable: false }
+                )
             }
-        })
-        this.setState({
-            animate: false
+        }).catch((error) => {
+            console.log("ERROROROROROROR: " + error)
+            Alert.alert(
+                'Request error',
+                'Country can\'t be blank.',
+                { cancelable: false }
+            )
+        }).finally(() => {
+            this.setState({
+                animate: false
+            })
         })
     }
 
@@ -144,7 +152,7 @@ export default class HomeScreen extends React.Component {
                     />
                     <ActivityIndicator
 
-                        hidesWhenStopped={false}
+                        hidesWhenStopped={true}
                         animating={this.state.animate}
                         style={{ flexBasis: "auto" }}
                     />
