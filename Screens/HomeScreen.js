@@ -76,7 +76,7 @@ export default class HomeScreen extends React.Component {
                 console.log("nie znaleziono")
                 Alert.alert(
                     'Articles not found',
-                    'Recieved 0 for: ' + this.state.country,
+                    'Recieved 0 for: \"' + this.state.country + '\"',
                     { cancelable: false }
                 )
             }
@@ -112,7 +112,6 @@ export default class HomeScreen extends React.Component {
         return (
             <ListItem
                 roundAvatar
-                avatarStyle={{ borderColor: mainColor, borderWidth: 1, width: 40, height: 40, borderRadius: 20 }}
                 title={rowData.title}
                 titleNumberOfLines={4}
                 rightIcon={{ name: 'chevron-right' }}
@@ -156,20 +155,6 @@ export default class HomeScreen extends React.Component {
                         animating={this.state.animate}
                         style={{ flexBasis: "auto" }}
                     />
-                    {/* <Display
-              enable={this.state.animate}
-              enterDuration={500}
-              exitDuration={250}
-              enter='fadeIn'
-              exit='fadeOut'
-              style={{ flexBasis: "auto" }}
-            >
-              <ActivityIndicator
-                hidesWhenStopped={true}
-                animating={this.state.animate}
-                style={{ flexBasis: "auto" }}
-              />
-            </Display> */}
                     <TouchableOpacity onPress={this.loadDataFromNewsAPI}>
                         <Icon name="ios-search" size={24} style={{ flexBasis: "auto", paddingLeft: 20, paddingRight: 12, paddingTop: 2 }} />
                     </TouchableOpacity>
@@ -192,27 +177,14 @@ export default class HomeScreen extends React.Component {
 }
 
 const styles = {
-    row: {
-        height: 100,
-        width: '100%',
-        borderBottomWidth: 1,
-        flexDirection: 'row',
-        borderBottomColor: '#BBBBBB',
-        paddingLeft: 0,
-        padding: 8,
-    },
     subtitleView: {
         flexDirection: 'row',
         paddingLeft: 10,
         paddingTop: 5,
     },
-    ratingImage: {
-        height: 19.21,
-        width: 100
-    },
     ratingText: {
-        paddingLeft: 0,
         color: 'grey',
+        paddingLeft: 0,
         fontSize: 10,
     }
 }
